@@ -1,311 +1,353 @@
-import Link from "next/link"
-import Image from "next/image"
+"use client"
+
+import type React from "react"
+import { redirect } from "next/navigation"
+
+import { useState } from "react"
+import { Search, Star, Shield, Clock, Download, ChevronRight, Cloud, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { ArrowRight, CheckCircle, Search, Shield, Zap } from "lucide-react"
-import PageClientWrapper from "@/components/client-wrappers/page-client-wrapper"
-import HeroSearchClientWrapper from "@/components/client-wrappers/hero-search-client-wrapper"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { PropertyInsights } from "@/components/property-insights"
+import { generatePropertyInsights, type PropertyInsight } from "@/app/actions/property-insights"
+import Link from "next/link"
+import { useToast } from "@/hooks/use-toast"
 
 export default function HomePage() {
-  return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-b from-black to-blue-950 relative overflow-hidden">
-      {/* Static placeholder for stars - will be replaced by client component */}
-      <div className="fixed inset-0 pointer-events-none z-0">{/* Client-side stars will be rendered here */}</div>
+  redirect("/dashboard")
 
-      {/* Client components */}
-      <PageClientWrapper />
+  const [address, setAddress] = useState("")
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [propertyInsights, setPropertyInsights] = useState<PropertyInsight | null>(null)
+  const [showInsights, setShowInsights] = useState(false)
+  const { toast } = useToast()
+
+  const handlePropertySearch = async () => {
+    if (!address.trim()) {
+      toast({
+        title: "Address Required",
+        description: "Please enter a property address to analyze",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsAnalyzing(true)
+    setShowInsights(true)
+
+    try {
+      // Call the server action
+      const insights = await generatePropertyInsights(address)
+      setPropertyInsights(insights)
+
+      toast({
+        title: "Analysis Complete",
+        description: "AI-powered property insights are ready",
+      })
+    } catch (error) {
+      console.error("Error analyzing property:", error)
+      toast({
+        title: "Analysis Failed",
+        description: "Unable to generate property insights. Please try again.",
+        variant: "destructive",
+      })
+      setShowInsights(false)
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handlePropertySearch()
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-black text-white overflow-hidden relative">
+      {/* Stars background */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute w-full h-full bg-[#000000] opacity-70"></div>
+        {/* Animated stars/particles */}
+        <div className="stars-container">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full bg-white opacity-70 animate-pulse"
+              style={{
+                width: `${Math.random() * 3 + 1}px`,
+                height: `${Math.random() * 3 + 1}px`,
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Earth glow in the distance */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[30vh] rounded-full bg-blue-500/20 opacity-30"></div>
+      </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-neon-gold/20 bg-black/50 backdrop-blur-md">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-neon-gold to-neon-orange flex items-center justify-center shadow-neon-glow">
-              <span className="text-xl font-bold text-black">R</span>
+      <header className="relative z-10 border-b border-white/10 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-black font-bold text-xl">
+              R
             </div>
-            <span className="text-xl font-bold text-white">
-              Roof<span className="text-neon-gold">Fax</span>
-            </span>
-          </div>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="#features" className="text-sm font-medium text-white/80 hover:text-neon-gold transition-colors">
+            <span className="font-bold text-xl">RoofFax</span>
+          </Link>
+          <nav className="hidden md:flex items-center gap-8">
+            <Link href="#" className="text-sm hover:text-amber-400 transition">
               Features
             </Link>
-            <Link href="#pricing" className="text-sm font-medium text-white/80 hover:text-neon-gold transition-colors">
+            <Link href="#" className="text-sm hover:text-amber-400 transition">
               Pricing
             </Link>
-            <Link
-              href="#testimonials"
-              className="text-sm font-medium text-white/80 hover:text-neon-gold transition-colors"
-            >
+            <Link href="#" className="text-sm hover:text-amber-400 transition">
               Testimonials
             </Link>
-            <Link
-              href="/dashboard"
-              className="text-sm font-medium text-white/80 hover:text-neon-gold transition-colors"
-            >
+            <Link href="#" className="text-sm hover:text-amber-400 transition">
               Dashboard
             </Link>
           </nav>
           <div className="flex items-center gap-4">
-            <Link
-              href="/login"
-              className="text-sm font-medium text-white/80 hover:text-neon-gold transition-colors hidden sm:inline-block"
-            >
+            <Link href="/signin" className="text-sm hover:text-amber-400 transition">
               Sign In
             </Link>
-            <Button className="bg-gradient-to-r from-neon-gold to-neon-orange hover:from-neon-orange hover:to-neon-gold text-black border-none shadow-neon-glow">
-              <Link href="/signup">Get Started Free</Link>
-            </Button>
+            <Button className="bg-amber-500 hover:bg-amber-600 text-black">Get Started Free</Button>
           </div>
         </div>
       </header>
 
-      <main className="flex-1">
+      {/* Main Content */}
+      <main className="relative z-10">
         {/* Hero Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 relative overflow-hidden">
-          {/* Background grid effect */}
-          <div className="absolute inset-0 grid-bg opacity-20"></div>
+        <section className="container mx-auto px-4 py-16 md:py-24">
+          <div className="max-w-4xl mx-auto text-center mb-12">
+            <div className="inline-block px-4 py-1 rounded-full border border-amber-500/50 text-amber-400 text-sm mb-6 backdrop-blur-sm">
+              <span className="mr-2">•</span>
+              Welcome back, Earthling. You found the coordinates.
+            </div>
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+              Your RoofFax guided you <span className="text-amber-500">out of orbit</span>.
+              <br />
+              Let's finish the journey.
+            </h1>
+            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+              Your property report awaits. One free pull to bring you back to Earth with all the data you need.
+            </p>
 
-          {/* Animated gradient orbs */}
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-neon-gold/10 blur-[100px] animate-float"></div>
-          <div
-            className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-neon-orange/10 blur-[100px] animate-float"
-            style={{ animationDelay: "1s" }}
-          ></div>
-
-          <div className="container px-4 md:px-6 relative z-10">
-            <div className="grid gap-6 lg:grid-cols-[1fr_500px] lg:gap-12 xl:grid-cols-[1fr_550px]">
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="space-y-2">
-                  <Badge className="inline-flex bg-gradient-to-r from-neon-gold to-neon-orange text-black border-none px-3 py-1 shadow-neon-glow">
-                    The World's Smartest Roof & Property Report
-                  </Badge>
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-white">
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-gold to-neon-orange">
-                      Trusted by Homeowners.
-                    </span>{" "}
-                    <br />
-                    Built for Pros.
-                  </h1>
-                  <p className="max-w-[600px] text-white/70 md:text-xl">
-                    Tired of juggling a dozen apps? RoofFax brings roof measurement, storm tracking, skip tracing, code
-                    lookups, proposals, and instant outreach together—guided by Roofus, built for closers.
-                  </p>
-                </div>
-                <HeroSearchClientWrapper />
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
+            {/* Property Search */}
+            <div className="relative max-w-2xl mx-auto">
+              <div className="absolute inset-0 bg-amber-500/20 blur-xl"></div>
+              <div className="relative bg-white/5 backdrop-blur-md border border-white/10 rounded-lg p-6">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+                    <Input
+                      type="text"
+                      placeholder="Enter property address..."
+                      className="pl-10 bg-black/30 border-white/20 h-12 w-full"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                    />
+                  </div>
                   <Button
-                    size="lg"
-                    className="bg-gradient-to-r from-neon-gold to-neon-orange hover:from-neon-orange hover:to-neon-gold text-black border-none shadow-neon-glow"
+                    className="h-12 px-8 bg-amber-500 hover:bg-amber-600 text-black font-medium"
+                    onClick={handlePropertySearch}
+                    disabled={isAnalyzing}
                   >
-                    <Link href="/signup">Start Free Trial</Link>
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="border-neon-gold/30 text-neon-gold hover:bg-neon-gold/10"
-                  >
-                    <Link href="#how-it-works">See How It Works</Link>
+                    {isAnalyzing ? "Analyzing..." : "Pull My RoofFax"}
                   </Button>
                 </div>
-                <div className="flex flex-wrap items-center gap-4 text-sm text-white/70">
-                  <div className="flex items-center gap-1">
-                    <CheckCircle className="h-4 w-4 text-neon-gold" />
-                    <span>No Credit Card Required</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <CheckCircle className="h-4 w-4 text-neon-gold" />
-                    <span>Instant Reports</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <CheckCircle className="h-4 w-4 text-neon-gold" />
-                    <span>Cancel Anytime</span>
-                  </div>
+                <p className="text-xs text-gray-400 mt-3 text-center">
+                  One free report per person or company. After that, the Pro Tools await.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Property Insights Section */}
+          {showInsights && (
+            <div className="max-w-4xl mx-auto mt-8 mb-16">
+              <PropertyInsights
+                insights={
+                  propertyInsights || {
+                    address: address,
+                    roofCondition: "",
+                    estimatedAge: "",
+                    replacementCost: "",
+                    stormRisk: "",
+                    maintenanceRecommendations: [],
+                    propertyValueImpact: "",
+                    sustainabilityOptions: [],
+                    confidence: 0,
+                  }
+                }
+                isLoading={isAnalyzing}
+              />
+            </div>
+          )}
+
+          {/* Report Features */}
+          <div className="max-w-4xl mx-auto mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 hover:border-amber-500/50 transition group">
+              <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
+                <Cloud className="h-6 w-6 text-amber-400" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Storm Tracking</h3>
+              <p className="text-gray-400">Historical storm data and future predictions for your property location.</p>
+            </div>
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 hover:border-amber-500/50 transition group">
+              <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
+                <Clock className="h-6 w-6 text-amber-400" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Roof Age Estimates</h3>
+              <p className="text-gray-400">AI-powered analysis to determine the approximate age of your roof.</p>
+            </div>
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 hover:border-amber-500/50 transition group">
+              <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
+                <Shield className="h-6 w-6 text-amber-400" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Contractor Suggestions</h3>
+              <p className="text-gray-400">Vetted professionals in your area with ratings and specialties.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Time Capsule Section */}
+        <section className="container mx-auto px-4 py-16 border-t border-white/10">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Drop a Time Capsule</h2>
+              <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+                Leave a message for the next homeowner or your future self. Your note will live in our RoofFacts
+                database.
+              </p>
+            </div>
+
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6">
+              <Textarea
+                placeholder="Share your home's story, maintenance tips, or a message to future owners..."
+                className="bg-black/30 border-white/20 h-32 mb-4"
+              />
+              <div className="flex justify-end">
+                <Button className="bg-white/10 hover:bg-white/20 text-white">Save to Time Capsule</Button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Trust the Fox Section */}
+        <section className="container mx-auto px-4 py-16 border-t border-white/10">
+          <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-12">
+            <div className="md:w-1/2">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Trust the Fox. Trust the Data.</h2>
+              <p className="text-xl text-gray-300 mb-6">
+                Like a seasoned scout guiding you through uncharted territory, RoofFax provides clarity in the chaos of
+                homeownership data.
+              </p>
+              <div className="flex gap-4">
+                <div className="flex items-center gap-2">
+                  <Star className="h-5 w-5 text-amber-400" />
+                  <span>98% Accuracy Rate</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-amber-400" />
+                  <span>Trusted by Pros</span>
                 </div>
               </div>
-              <div className="relative mx-auto aspect-video overflow-hidden rounded-xl border-2 border-neon-gold/30 bg-black/30 p-2 shadow-neon-glow lg:order-last">
-                <Image
-                  src="/images/landon-roofus-roof.png"
-                  width={550}
-                  height={550}
-                  alt="RoofFax Dashboard Preview"
-                  className="w-full object-cover rounded-lg"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent p-6 flex items-end">
-                  <div className="w-full">
-                    <div className="mb-2 flex items-center justify-between">
-                      <Badge variant="outline" className="bg-black/80 backdrop-blur border-neon-gold/30 text-neon-gold">
-                        Live Demo
-                      </Badge>
-                      <Button
-                        size="sm"
-                        className="gap-1 bg-neon-gold/10 hover:bg-neon-gold/20 backdrop-blur-sm border border-neon-gold/30 text-neon-gold"
-                      >
-                        Try Now <ArrowRight className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
+            </div>
+            <div className="md:w-1/2 relative">
+              <div className="absolute inset-0 bg-amber-500/20 blur-xl"></div>
+              <div className="relative w-full aspect-square max-w-sm mx-auto">
+                <div className="w-full h-full bg-amber-500/10 rounded-full flex items-center justify-center">
+                  <div className="text-amber-500 text-4xl font-bold">R</div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Stats Section */}
-        <section className="w-full py-12 md:py-16 lg:py-20 border-y border-neon-gold/20 bg-black/30">
-          <div className="container px-4 md:px-6">
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-8">
-              <div className="flex flex-col items-center justify-center space-y-2 text-center p-4 rounded-lg border-2 border-neon-gold/20 bg-black/50 backdrop-blur-sm shadow-neon-glow">
-                <div className="text-3xl font-bold md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-neon-gold to-neon-orange">
-                  3.5M+
+        {/* Pro Tools Section */}
+        <section className="container mx-auto px-4 py-16 border-t border-white/10">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Need More Than One Report?</h2>
+              <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+                Unlock the full potential of RoofFax with our professional tools designed for serious users.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 hover:border-amber-500/50 transition group">
+                <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
+                  <Zap className="h-6 w-6 text-amber-400" />
                 </div>
-                <div className="text-sm font-medium text-white/70">Roofs Analyzed</div>
+                <h3 className="text-xl font-semibold mb-2">AI Property Insights</h3>
+                <p className="text-gray-400 mb-4">
+                  Advanced analytics and predictions based on comprehensive property data.
+                </p>
+                <div className="bg-black/30 rounded p-3 text-gray-500 text-sm">
+                  <div className="blur-sm">Property value trend: +12% over 3 years</div>
+                  <div className="blur-sm">Roof replacement ROI: 68.4%</div>
+                  <div className="mt-2 text-amber-500 text-center">Unlock with Pro Tools</div>
+                </div>
               </div>
-              <div className="flex flex-col items-center justify-center space-y-2 text-center p-4 rounded-lg border-2 border-neon-gold/20 bg-black/50 backdrop-blur-sm shadow-neon-glow">
-                <div className="text-3xl font-bold md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-neon-gold to-neon-orange">
-                  15K+
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 hover:border-amber-500/50 transition group">
+                <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
+                  <Download className="h-6 w-6 text-amber-400" />
                 </div>
-                <div className="text-sm font-medium text-white/70">Active Contractors</div>
-              </div>
-              <div className="flex flex-col items-center justify-center space-y-2 text-center p-4 rounded-lg border-2 border-neon-gold/20 bg-black/50 backdrop-blur-sm shadow-neon-glow">
-                <div className="text-3xl font-bold md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-neon-gold to-neon-orange">
-                  98%
+                <h3 className="text-xl font-semibold mb-2">Unlimited RoofFax Pulls</h3>
+                <p className="text-gray-400 mb-4">
+                  Access property reports without limits. Perfect for professionals and investors.
+                </p>
+                <div className="bg-black/30 rounded p-3 text-gray-500 text-sm">
+                  <div className="blur-sm">12 properties in watchlist</div>
+                  <div className="blur-sm">Batch processing available</div>
+                  <div className="mt-2 text-amber-500 text-center">Unlock with Pro Tools</div>
                 </div>
-                <div className="text-sm font-medium text-white/70">Accuracy Rate</div>
-              </div>
-              <div className="flex flex-col items-center justify-center space-y-2 text-center p-4 rounded-lg border-2 border-neon-gold/20 bg-black/50 backdrop-blur-sm shadow-neon-glow">
-                <div className="text-3xl font-bold md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-neon-gold to-neon-orange">
-                  2.5X
-                </div>
-                <div className="text-sm font-medium text-white/70">Close Rate Increase</div>
               </div>
             </div>
-          </div>
-        </section>
 
-        {/* How It Works Section */}
-        <section id="how-it-works" className="w-full py-12 md:py-24 lg:py-32 relative">
-          <div className="absolute inset-0 grid-bg opacity-20"></div>
-          <div className="container px-4 md:px-6 relative z-10">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <Badge
-                  variant="outline"
-                  className="border-neon-gold/50 text-neon-gold bg-neon-gold/10 px-3 py-1 shadow-neon-glow"
-                >
-                  Simple Process
-                </Badge>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white">
-                  How RoofFax Works
-                </h2>
-                <p className="max-w-[900px] text-white/70 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Get comprehensive roof reports in seconds, not hours or days like our competitors.
-                </p>
-              </div>
-            </div>
-            <div className="mx-auto grid max-w-5xl items-start gap-6 py-12 md:grid-cols-3">
-              <div className="flex flex-col items-center space-y-2 text-center p-6 rounded-xl border-2 border-neon-gold/20 bg-black/50 backdrop-blur-sm shadow-neon-glow">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neon-gold/20 text-neon-gold mb-2">
-                  <Search className="h-8 w-8" />
-                </div>
-                <h3 className="text-xl font-bold text-white">1. Enter Address</h3>
-                <p className="text-white/70">
-                  Simply enter any property address to get started. Our system will locate the property instantly.
-                </p>
-              </div>
-              <div className="flex flex-col items-center space-y-2 text-center p-6 rounded-xl border-2 border-neon-gold/20 bg-black/50 backdrop-blur-sm shadow-neon-glow">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neon-gold/20 text-neon-gold mb-2">
-                  <Zap className="h-8 w-8" />
-                </div>
-                <h3 className="text-xl font-bold text-white">2. Instant Analysis</h3>
-                <p className="text-white/70">
-                  Our AI analyzes satellite imagery, property data, and historical records in seconds.
-                </p>
-              </div>
-              <div className="flex flex-col items-center space-y-2 text-center p-6 rounded-xl border-2 border-neon-gold/20 bg-black/50 backdrop-blur-sm shadow-neon-glow">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neon-gold/20 text-neon-gold mb-2">
-                  <Shield className="h-8 w-8" />
-                </div>
-                <h3 className="text-xl font-bold text-white">3. Get Your Report</h3>
-                <p className="text-white/70">
-                  Receive a comprehensive roof report with measurements, condition assessment, and actionable insights.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-r from-black to-blue-950/80 border-y border-neon-gold/20 relative overflow-hidden">
-          <div className="absolute inset-0 grid-bg opacity-10"></div>
-          <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full bg-neon-gold/10 blur-[100px] animate-float"></div>
-
-          <div className="container px-4 md:px-6 relative z-10">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white">
-                  Enter an address. Get the facts. <span className="text-neon-gold">Outsmart the storm™</span>
-                </h2>
-                <p className="max-w-[900px] text-white/70 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Stop wasting time on clunky apps. RoofFax does it all, so you can close more jobs, faster.
-                </p>
-              </div>
-              <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-neon-gold to-neon-orange hover:from-neon-orange hover:to-neon-gold text-black border-none shadow-neon-glow"
-                >
-                  <Link href="/signup">Start Your Free Trial</Link>
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-neon-gold/30 text-neon-gold hover:bg-neon-gold/10"
-                >
-                  <Link href="/demo">Schedule a Demo</Link>
-                </Button>
-              </div>
-              <p className="text-sm text-white/50">No credit card required. Cancel anytime.</p>
+            <div className="mt-12 text-center">
+              <Button className="bg-amber-500 hover:bg-amber-600 text-black px-8 py-6 text-lg rounded-lg">
+                Explore Pro Tools <ChevronRight className="ml-2 h-5 w-5" />
+              </Button>
             </div>
           </div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-neon-gold/20 py-6 md:py-0 bg-black/50 backdrop-blur-md">
-        <div className="container flex flex-col gap-6 md:gap-0 md:h-24 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-neon-gold to-neon-orange flex items-center justify-center shadow-neon-glow">
-              <span className="text-xl font-bold text-black">R</span>
+      <footer className="relative z-10 border-t border-white/10 backdrop-blur-sm py-8">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center gap-2 mb-4 md:mb-0">
+              <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-black font-bold text-sm">
+                R
+              </div>
+              <span className="font-bold">RoofFax</span>
+              <span className="text-sm text-gray-400 ml-4">© {new Date().getFullYear()} All rights reserved</span>
             </div>
-            <span className="text-lg font-bold text-white">
-              Roof<span className="text-neon-gold">Fax</span>
-            </span>
+            <div className="flex gap-6">
+              <Link href="#" className="text-sm text-gray-400 hover:text-white transition">
+                Privacy
+              </Link>
+              <Link href="#" className="text-sm text-gray-400 hover:text-white transition">
+                Terms
+              </Link>
+              <Link href="#" className="text-sm text-gray-400 hover:text-white transition">
+                Contact
+              </Link>
+              <Link href="#" className="text-sm text-gray-400 hover:text-white transition">
+                Support
+              </Link>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-4 md:gap-6">
-            <Link href="/about" className="text-sm text-white/50 hover:text-neon-gold transition-colors">
-              About
-            </Link>
-            <Link href="/features" className="text-sm text-white/50 hover:text-neon-gold transition-colors">
-              Features
-            </Link>
-            <Link href="/pricing" className="text-sm text-white/50 hover:text-neon-gold transition-colors">
-              Pricing
-            </Link>
-            <Link href="/blog" className="text-sm text-white/50 hover:text-neon-gold transition-colors">
-              Blog
-            </Link>
-            <Link href="/contact" className="text-sm text-white/50 hover:text-neon-gold transition-colors">
-              Contact
-            </Link>
-            <Link href="/privacy" className="text-sm text-white/50 hover:text-neon-gold transition-colors">
-              Privacy
-            </Link>
-            <Link href="/terms" className="text-sm text-white/50 hover:text-neon-gold transition-colors">
-              Terms
-            </Link>
-          </div>
-          <p className="text-sm text-white/50">&copy; 2023 RoofFax. All rights reserved.</p>
         </div>
       </footer>
     </div>

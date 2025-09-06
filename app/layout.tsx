@@ -2,17 +2,15 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "RoofFax - The World's Smartest Roof & Property Report",
-  description:
-    "Get instant, interactive, AI-powered insights for any property: roof measurements, weather, storm history, repairs, permits, materials, and more. Guided by Roofus—your AI property expert.",
-  icons: {
-    icon: "/favicon.ico",
-  },
-    generator: 'v0.dev'
+  title: "RoofFax - Property Reports",
+  description: "Get detailed property and roof reports with RoofFax",
+    generator: 'v0.app'
 }
 
 export default function RootLayout({
@@ -22,7 +20,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          {children}
+          <Toaster />
+        </ThemeProvider>
+      </body>
     </html>
   )
 }
